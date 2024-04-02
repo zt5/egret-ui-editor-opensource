@@ -1787,6 +1787,10 @@
 		"s": "Label",
 		"t": "文本"
 	},
+	"property.style.title.stroke": {
+		"s": "Stroke",
+		"t": "描边"
+	},
 	"property.style.title.rect.ellipse": {
 		"s": "Ellipse",
 		"t": "圆角"

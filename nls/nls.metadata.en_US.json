@@ -1787,6 +1787,10 @@
 		"s": "Label",
 		"t": "Label"
 	},
+	"property.style.title.stroke": {
+		"s": "Stroke",
+		"t": "Stroke"
+	},
 	"property.style.title.rect.ellipse": {
 		"s": "Ellipse",
 		"t": "Ellipse"

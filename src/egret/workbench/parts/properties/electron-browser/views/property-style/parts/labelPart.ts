@@ -62,6 +62,8 @@ enum PropertyTypes {
 	TEXT_COLOR = 'textColor',
 	FONT_FAMILY = 'fontFamily',
 	SIZE = 'size',
+	STROKE_SIZE = "stroke",
+	STROKE_COLOR = "strokeColor",
 	BOLD = 'bold',
 	ITALIC = 'italic',
 	VERTICAL_ALIGN = 'verticalAlign',
@@ -132,6 +134,15 @@ export class LabelPart extends BasePart {
 						this.colorPicker.setColor(null);
 					}
 					break;
+				case PropertyTypes.STROKE_COLOR:
+					if (value.user != null) {
+						this.strokeColorPicker.setColor(toHexString(value.user as any,'#'));
+					} else if (value.default != null) {
+						this.strokeColorPicker.setColor(toHexString(value.default as any,'#'));
+					} else {
+						this.strokeColorPicker.setColor(null);
+					}
+					break;
 				case PropertyTypes.FONT_FAMILY:
 					if (value.user != null) {
 						this.getFonts(value.user as any).then(datas => {
@@ -161,6 +172,17 @@ export class LabelPart extends BasePart {
 					} else {
 						this.sizeInput.text = null;
 						this.sizeInput.prompt = '-';
+					}
+					break;
+				case PropertyTypes.STROKE_SIZE:
+					if (value.user != null) {
+						this.strokeSizeInput.text = value.user as any;
+					} else if (value.default != null) {
+						this.strokeSizeInput.text = null;
+						this.strokeSizeInput.prompt = value.default as string;
+					} else {
+						this.strokeSizeInput.text = null;
+						this.strokeSizeInput.prompt = '-';
 					}
 					break;
 				case PropertyTypes.BOLD:
@@ -247,6 +269,10 @@ export class LabelPart extends BasePart {
 		result[PropertyTypes.VERTICAL_ALIGN] = getProperty(node, 'verticalAlign');
 		//水平对齐
 		result[PropertyTypes.TEXT_ALIGN] = getProperty(node, 'textAlign');
+		//描边颜色
+		result[PropertyTypes.STROKE_COLOR] = getProperty(node, 'strokeColor');
+		//描边大小
+		result[PropertyTypes.STROKE_SIZE] = getProperty(node, 'stroke');
 		return result;
 	}
 
@@ -280,6 +306,8 @@ export class LabelPart extends BasePart {
 
 	private colorPicker = new ColorPicker();
 	private sizeInput = new NumberInput();
+	private strokeSizeInput = new NumberInput();
+	private strokeColorPicker = new ColorPicker();
 	private fontCombobx = new ComboBox();
 
 	private boldButton = new ToggleIconButton();
@@ -326,6 +354,28 @@ export class LabelPart extends BasePart {
 		this.fontCombobx.style.flexShrink = '1';
 		this.fontCombobx.style.marginLeft = '6px';
 		this.toDisposes.push(this.fontCombobx.onSelectChanged(e=>this.fontChanegd_handler(this.fontCombobx.getSelection())));
+		
+
+		const linestroke = new DivideLine(container);
+		linestroke.text = localize('property.style.title.stroke', 'Stroke');
+		linestroke.style.marginBottom = '6px';
+
+		//描边行
+		var hGroup = new HGroup(container);
+		addClass(hGroup.getElement(), 'property-attribute-item');
+		//描边大小
+		this.strokeSizeInput.create(hGroup);
+		this.strokeSizeInput.style.maxWidth = '40px';
+		this.strokeSizeInput.style.marginLeft = '6px';
+		this.strokeSizeInput.minValue = 0;
+		this.toDisposes.push(this.strokeSizeInput.onValueChanging(e=>this.strokeSizeChanging_handler(Number.parseFloat(e))));
+		this.toDisposes.push(this.strokeSizeInput.onValueChanged(e=>this.strokeSizeChanged_handler(e ? Number.parseFloat(e) : null)));
+		//描边颜色
+		this.strokeColorPicker.create(hGroup);
+		this.toDisposes.push(this.strokeColorPicker.onDisplay(()=>this.strokeColorDisplay_handler()));
+		this.toDisposes.push(this.strokeColorPicker.onChanged(e=>this.strokeColorChanged_handler(e)));
+		this.toDisposes.push(this.strokeColorPicker.onSaved(e=>this.strokeColorSaved_handler(e)));
+		this.toDisposes.push(this.strokeColorPicker.onCanceled(()=>this.strokeColorCanceled_handler()));
 
 
 		var hGroup = new HGroup(container);
@@ -396,6 +446,15 @@ export class LabelPart extends BasePart {
 			node.setInstanceValue('textColor',toHexNumber(color.toHEXA().toString()));
 		}
 	}
+	private strokeColorChanged_handler(color:HSVaColor):void{
+		if(!this.currentNodes){
+			return;
+		}
+		for(let i = 0;i<this.currentNodes.length;i++){
+			const node = this.currentNodes[i];
+			node.setInstanceValue('strokeColor',toHexNumber(color.toHEXA().toString()));
+		}
+	}
 	private colorSaved_handler(color:HSVaColor):void{
 		if(!this.currentNodes){
 			return;
@@ -411,6 +470,38 @@ export class LabelPart extends BasePart {
 			}
 		}
 	}
+	private strokeColorSaved_handler(color:HSVaColor):void{
+		if(!this.currentNodes){
+			return;
+		}
+		for(let i = 0;i<this.currentNodes.length;i++){
+			const node = this.currentNodes[i];
+			if(color){
+				setPropertyStr(node,'strokeColor',toHexString(color.toHEXA().toString(),'0x'));
+				node.setInstanceValue('strokeColor',toHexNumber(color.toHEXA().toString()));
+			}else{
+				setPropertyStr(node,'strokeColor','0xffffff');
+				setPropertyStr(node,'strokeColor',null);
+			}
+		}
+	}
+	private strokeColorCaches:any[]=[];
+	private strokeColorDisplay_handler():void{
+		this.strokeColorCaches.length = 0;
+		if(!this.currentNodes){
+			return;
+		}
+		for(let i = 0;i<this.currentNodes.length;i++){
+			const node = this.currentNodes[i];
+			if(node.getInstance()){
+				const color = node.getInstance()['strokeColor'];
+				this.strokeColorCaches.push(color);
+			}else{
+				this.strokeColorCaches.push(null);
+			}
+		}
+	}
+
 	private colorCaches:any[] = [];
 	private colorDisplay_handler():void{
 		this.colorCaches.length = 0;
@@ -436,6 +527,25 @@ export class LabelPart extends BasePart {
 			node.setInstanceValue('textColor',this.colorCaches[i]);
 		}
 	}
+	private strokeColorCanceled_handler():void{
+		if(!this.currentNodes){
+			return;
+		}
+		for(let i = 0;i<this.currentNodes.length;i++){
+			const node = this.currentNodes[i];
+			node.setInstanceValue('strokeColor',this.strokeColorCaches[i]);
+		}
+	}
+
+	private strokeSizeChanging_handler(value:number):void{
+		if(!this.currentNodes){
+			return;
+		}
+		for(let i = 0;i<this.currentNodes.length;i++){
+			const node = this.currentNodes[i];
+			node.setInstanceValue('stroke',value);
+		}
+	}
 
 	private sizeChanging_handler(value:number):void{
 		if(!this.currentNodes){
@@ -444,6 +554,15 @@ export class LabelPart extends BasePart {
 		for(let i = 0;i<this.currentNodes.length;i++){
 			const node = this.currentNodes[i];
 			node.setInstanceValue('size',value);
+		}
+	}
+	private strokeSizeChanged_handler(value:number):void{
+		if(!this.currentNodes){
+			return;
+		}
+		for(let i = 0;i<this.currentNodes.length;i++){
+			const node = this.currentNodes[i];
+			setPropertyNum(node,'stroke',value);
 		}
 	}
 	private sizeChanged_handler(value:number):void{

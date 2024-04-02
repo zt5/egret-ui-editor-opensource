@@ -7,8 +7,10 @@
     "license": "ISC",
     "scripts": {
         "start": "electron .",
-        "setup-mac": "export ELECTRON_MIRROR=http://npm.taobao.org/mirrors/electron/&& npm install",
-        "setup-win": "set ELECTRON_MIRROR=https://npm.taobao.org/mirrors/electron/&& npm install",
+        "set-proxy": "npm config set proxy=http://127.0.0.1:10809 && npm config set https-proxy=http://127.0.0.1:10809",
+        "clear-proxy": "npm config delete proxy && npm config delete https-proxy",
+        "setup-mac": "export ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/&&npm install",
+        "setup-win": "set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/&&npm install",
         "build": "webpack --progress --config webpack.debug.config.js",
         "watch": "webpack --watch --progress --config  webpack.debug.config.js",
         "setup-cnpm": "npm install cnpm@6.0.0 -g"

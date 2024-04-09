@@ -56,11 +56,23 @@ export class SourcePart extends BasePart {
 		if (fillModeValue) {
 			this.fillmodeCombobox.setSelection(fillModeValue.getInstance());
 		}
+
+		const isScale9Grid = node.getProperty('scale9Grid');
+		this.updateScale9GridBtn(!!isScale9Grid);
 	}
 
 	private sourceInput = new TextInput();
 	private scale9GridBtn = new IconButton();
 	private fillmodeCombobox = new ComboBox();
+
+
+	private updateScale9GridBtn(isSet:boolean){
+		if(isSet){
+			this.scale9GridBtn.iconClass = 'scale_9_grid';
+		}else{
+			this.scale9GridBtn.iconClass = 'search_light';
+		}
+	}
 
 	/**
 	 * 渲染
@@ -81,7 +93,9 @@ export class SourcePart extends BasePart {
 		this.sourceInput.create(hGroup);
 		this.toDisposes.push(this.sourceInput.onValueChanged(e => this.sourceChanged_handler(e)));
 		this.scale9GridBtn.create(hGroup);
-		this.scale9GridBtn.iconClass = 'scale_9_grid';
+		
+		this.updateScale9GridBtn(false);
+
 		this.scale9GridBtn.style.marginLeft = '4px';
 		this.toDisposes.push(this.scale9GridBtn.onClick(() => this.scale9gridClick_handler()));
 		this.initAttributeStyle(attribute);
@@ -155,6 +169,7 @@ export class SourcePart extends BasePart {
 							} else {
 								this.currentNode.setProperty('scale9Grid',null);
 							}
+							this.updateScale9GridBtn(!!this.currentNode.getProperty('scale9Grid'));
 						}
 					});
 				scale9Window.open('root', true);

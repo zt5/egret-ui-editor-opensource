@@ -1,6 +1,9 @@
 .scale_9_grid {
     background-image: url('light/scale_9_grid.svg');
 }
+.search_light {
+    background-image: url('light/search_light.svg');
+}
 
 .data-source {
 	background-image: url('light/datasource.svg');
